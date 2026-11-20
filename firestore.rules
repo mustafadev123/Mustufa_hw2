@@ -1,0 +1,25 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function owns(uid) { return signedIn() && request.auth.uid == uid; }
+    match /users/{uid} {
+      allow create: if owns(uid) && request.resource.data.uid == uid
+        && request.resource.data.keys().hasOnly(['uid','firstName','lastName','role','registeredAt']);
+      allow read, update, delete: if owns(uid);
+    }
+    match /messages/{messageId} {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.resource.data.authorUid == request.auth.uid
+        && request.resource.data.schemaVersion == 2
+        && request.resource.data.text is string && request.resource.data.text.size() > 0
+        && request.resource.data.text.size() <= 500
+        && request.resource.data.keys().hasOnly(['authorUid','authorName','text','createdAt','updatedAt','schemaVersion']);
+      allow update: if owns(resource.data.authorUid)
+        && request.resource.data.authorUid == resource.data.authorUid
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text','updatedAt','schemaVersion']);
+      allow delete: if owns(resource.data.authorUid);
+    }
+  }
+}

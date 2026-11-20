@@ -2,7 +2,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../services/auth_service.dart';
+import '../services/board_service.dart';
 import 'auth_screen.dart';
+import 'board_screen.dart';
 
 class AuthGate extends StatelessWidget {
   const AuthGate({required this.authService, super.key});
@@ -16,18 +18,10 @@ class AuthGate extends StatelessWidget {
         return const Scaffold(body: Center(child: CircularProgressIndicator()));
       }
       if (snapshot.data == null) return AuthScreen(authService: authService);
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('Vault Board'),
-          actions: [
-            IconButton(
-              tooltip: 'Sign out',
-              onPressed: authService.signOut,
-              icon: const Icon(Icons.logout_rounded),
-            ),
-          ],
-        ),
-        body: const Center(child: Text('Your message board is ready.')),
+      return BoardScreen(
+        user: snapshot.data!,
+        authService: authService,
+        boardService: BoardService(),
       );
     },
   );
