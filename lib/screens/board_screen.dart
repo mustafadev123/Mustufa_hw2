@@ -77,6 +77,9 @@ class _BoardScreenState extends State<BoardScreen> {
         ],
       ),
     );
+    // showDialog completes when Navigator.pop is called, before the route's
+    // reverse animation has fully detached the TextField from its controller.
+    await Future<void>.delayed(kThemeAnimationDuration);
     controller.dispose();
     if (value == null || value.isEmpty || value == message.text) return;
     try {
