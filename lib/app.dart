@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'screens/auth_gate.dart';
+import 'services/auth_service.dart';
+
 class VaultApp extends StatefulWidget {
   const VaultApp({required this.initializeFirebase, super.key});
 
@@ -44,7 +47,7 @@ class _VaultAppState extends State<VaultApp> {
           if (snapshot.connectionState != ConnectionState.done) {
             return const SplashScreen();
           }
-          return const SetupCompleteScreen();
+          return AuthGate(authService: AuthService());
         },
       ),
     );
@@ -134,14 +137,5 @@ class InitializationErrorScreen extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-class SetupCompleteScreen extends StatelessWidget {
-  const SetupCompleteScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(body: Center(child: Text('Firebase connected')));
   }
 }
