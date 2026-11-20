@@ -10,7 +10,7 @@
 
 ## Executive result
 
-The app implements splash/error initialization, Firebase Email/Password Authentication, an auth-state gate, a five-field private user document, real-time Firestore message reads, owner-only CRUD, server timestamps, schema v2, idempotent creation, deployed security rules, and emulator automation. Flutter analysis and widget tests pass. The combined emulator run reports five passed and zero failed. The exact release APK installed and launched on the named phone; release create/read and rapid-double-submit passed. Debug-device CRUD had already passed. The release edit/delete automation was not counted as complete because keyboard positioning prevented a reliable final delete observation; this is reported rather than inferred.
+The app implements splash/error initialization, Firebase Email/Password Authentication, an auth-state gate, a five-field private user document, real-time Firestore message reads, owner-only CRUD, server timestamps, schema v2, idempotent creation, deployed security rules, and emulator automation. Flutter analysis and widget tests pass. The combined emulator run reports five passed and zero failed. The exact release APK installed and launched on the named phone; release sign-out/sign-in, create/read/edit/delete, rapid-double-submit, and an independent-client live update all passed.
 
 ## Architecture and authorization judgment
 
@@ -24,8 +24,8 @@ Authentication proves identity through Firebase Auth. Authorization decides acce
 | P0 | Registration | Auth user plus five-field profile | Muhammad Mustufa registered; board opened | PASS, Fig. 2 |
 | P0 | Auth persistence | Relaunch restores signed-in route | Relaunch returned directly to board | PASS |
 | P0 | Create/read | One post appears through stream | Post appeared without refresh | PASS, Fig. 4 |
-| P0 | Edit | Owned text changes | Debug device edit persisted after relaunch | PASS, Fig. 5 |
-| P0 | Delete one | Target disappears; other data unaffected | Debug target disappeared and empty state returned | PASS, Fig. 6 |
+| P0 | Edit | Owned text changes | Debug edit persisted after relaunch; release edit strictly reverified | PASS, Figs. 5 and 8 |
+| P0 | Delete one | Target disappears; other data unaffected | Release target disappeared while two unrelated messages remained | PASS, Fig. 9 |
 | P0 | Signed-out read | Firestore rejects | Emulator `assertFails` passed | PASS |
 | P0 | Cross-UID edit/delete | Firestore rejects both | Emulator `assertFails` passed | PASS |
 | P0 | Forged author create | Firestore rejects | Emulator `assertFails` passed | PASS |
@@ -33,8 +33,8 @@ Authentication proves identity through Firebase Auth. Authorization decides acce
 | P0 | Duplicate submit | Rapid double-tap leaves one document | Release UI contained exactly one matching message | PASS, Fig. 7 |
 | P1 | Schema migration | v1 becomes v2 without loss | First run migrated 1; rerun migrated 0; deep equality passed | PASS |
 | P1 | Initialization failure | Safe retry screen | Widget test passed | PASS |
-| P1 | Second-client live update | First client updates without refresh | Not captured with two simultaneous physical/window clients | NOT RUN |
-| P1 | Exact release edit/delete | Both operations work on release | Automation could not reliably complete final keyboard-driven sequence | INCOMPLETE |
+| P1 | Second-client live update | First client updates without refresh | Independent Firebase client B posted; running release app updated without refresh | PASS, Fig. 10 |
+| P1 | Exact release edit/delete | Both operations work on release | Edit verified on board; delete removed only target and preserved two other messages | PASS, Figs. 8 and 9 |
 
 ## Screenshot evidence
 
@@ -80,9 +80,27 @@ Authentication proves identity through Firebase Auth. Authorization decides acce
 
 **Action:** Rapidly tap Send twice on the installed release APK. **Expected:** one deterministic document. **Observed:** accessibility hierarchy contained exactly one `Release duplicate test`. **Result:** PASS.
 
+### Figure 8 — Exact-release edit
+
+![Release edit](screenshots/09_release_edit.png)
+
+**Action:** Edit the release-test message on the exact installed APK. **Expected:** the same document displays `Verified`. **Observed:** the dialog closed and the board hierarchy contained revised text with no edit dialog present. **Result:** PASS.
+
+### Figure 9 — Exact-release surgical delete
+
+![Release delete](screenshots/10_release_delete.png)
+
+**Action:** Delete only the revised release-test message. **Expected:** target disappears; Muhammad's earlier post and client B's post remain. **Observed:** target was absent and both unrelated messages remained. **Result:** PASS.
+
+### Figure 10 — Independent-client live update
+
+![Live second client](screenshots/11_release_live_second_client.png)
+
+**Action:** While the release board remained open, a separate Firebase JS client authenticated with a second UID and posted. **Expected:** phone updates without refresh and does not show owner controls for client B's message. **Observed:** `Live update from independent client B` appeared immediately without refresh and no edit menu was rendered for that item. **Result:** PASS.
+
 ## Required Main Spice — Release Readiness Gate
 
-The exact `submission/app-release.apk` was built, installed, and launched on the Samsung device. Auth persistence, board read, create, and duplicate-submit passed. Rules denials are independently proven by emulator tests. Debug-device full CRUD passed. A true two-client live-stream capture and a reliable exact-release edit/delete replay remain incomplete, so the Main Spice must not be marked fully complete until those two observations are captured.
+The exact `submission/app-release.apk` was built, installed, and launched on the Samsung device. Release sign-out/sign-in, board read, create, edit, surgical delete, duplicate-submit, and independent-client live update passed. Signed-out and cross-UID denials are independently proven by emulator tests against the deployed rule source. The remaining documentation gap is a Firebase Console screenshot of the five-field user document.
 
 ## Four graduate choice spices
 
@@ -162,7 +180,7 @@ The first failure at 100,000 messages would be read cost and initial stream size
 - [x] Four choice spices implemented
 - [ ] Add public GitHub repository URL
 - [ ] Capture Firestore Console user-document screenshot
-- [ ] Capture true second-client live-stream evidence
-- [ ] Repeat/capture exact-release edit/delete reliably
+- [x] Capture true independent-client live-stream evidence
+- [x] Repeat/capture exact-release edit/delete reliably
 - [ ] Convert this draft to DOCX/PDF and perform personal-authorship review
 - [ ] Upload artifacts and verify LMS confirmation
